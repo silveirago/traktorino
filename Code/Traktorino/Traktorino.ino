@@ -126,7 +126,7 @@ Thread threadReadButtons; // thread para controlar os botoes
 /////////////////////////////////////////////
 void setup() {
 
-  Serial.begin(115200);
+  Serial.begin(31250); // 115200 for hairless - 31250 for MOCO lufa
 
   /////////////////////////////////////////////
   // Midi in
@@ -169,7 +169,7 @@ void setup() {
 
   /////////////////////////////////////////////
   //leds
-  analogWrite(ledOnOffPin, 10); // on/off led
+  analogWrite(ledOnOffPin, 255); // on/off led
 
 //  for (int i = 0; i < ledNum; i++) { // writeBit works just like digitalWrite
 //    ShiftPWM.SetOne(i, LOW);
