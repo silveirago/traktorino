@@ -1,10 +1,15 @@
-/* Traktorino
+/* DIY MIDI Controller
 
-  This sketch was made for the Traktorino,
-  a DIY MIDI Controller for DJs.
-  www.musiconerd.com/traktorino
+  Esta sketch permite transformar um Arduino Micro, Pro Micro, ou Leonardo (nao testado),
+  em um controlador MIDI class compliante. Ou seja, nao ha necessidade de nenhum conversor serial,
+  como o Hairless Midi.
 
-  By Gustavo Silveira, 2017.
+  /// Licensa ///
+
+  Este codigo esta licensisado sob forma de "pagamento de cerveja" (se possivel) e
+  "dar os devidos creditos" (sempre).
+
+  Feito por Gustavo Silveira, 2017.
 
   http://www.musiconerd.com
   http://www.bitcontrollers.com
@@ -43,10 +48,10 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 /////////////////////////////////////////////
 // buttons
 const byte muxNButtons = 13; // *coloque aqui o numero de entradas digitais utilizadas no multiplexer
-const byte NButtons = 1; // *coloque aqui o numero de entradas digitais utilizadas
+const byte NButtons = 0; // *coloque aqui o numero de entradas digitais utilizadas
 const byte totalButtons = muxNButtons + NButtons;
 const byte muxButtonPin[muxNButtons] = {0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15}; // *neste array coloque na ordem desejada os pinos das portas digitais utilizadas
-const byte buttonPin[NButtons] = {9}; // *neste array coloque na ordem desejada os pinos das portas digitais utilizadas
+const byte buttonPin[NButtons] = {}; // *neste array coloque na ordem desejada os pinos das portas digitais utilizadas
 int buttonCState[totalButtons] = {0}; // estado atual da porta digital
 int buttonPState[totalButtons] = {0}; // estado previo da porta digital
 
@@ -74,7 +79,7 @@ unsigned long timer[NPots] = {0}; // armazena o tempo que passou desde que o tim
 
 /////////////////////////////////////////////
 // encoder
-Encoder myEnc(2, 7);
+Encoder myEnc(2, 3);
 long oldPosition  = -10;
 
 /////////////////////////////////////////////
@@ -139,42 +144,46 @@ void setup() {
   // Leds
   //  leds.setBitCount(ledNum); // Mux Leds
   //  leds.setPins(clockPin, dataPin, latchPin);
+  pinMode(ledOnOffPin, OUTPUT);
 
   // Sets the number of 8-bit registers that are used.
   ShiftPWM.SetAmountOfRegisters(numRegisters);
   ShiftPWM.SetAll(0);
+  // Sets the number of 8-bit registers that are used.
+  ShiftPWM.SetAmountOfRegisters(numRegisters);
   // SetPinGrouping allows flexibility in LED setup.
   // If your LED's are connected like this: RRRRGGGGBBBBRRRRGGGGBBBB, use SetPinGrouping(4).
   ShiftPWM.SetPinGrouping(1); //This is the default, but I added here to demonstrate how to use the funtion
   ShiftPWM.Start(pwmFrequency, maxBrightness);
 
-  pinMode(ledOnOffPin, OUTPUT);
-  analogWrite(ledOnOffPin, 255); // on/off led
-
-  /////////////////////////////////////////////
-  // buttons
-  for (int i = 0; i < NButtons; i++) {
-    pinMode(buttonPin[i], INPUT_PULLUP);
-  }
-
   /////////////////////////////////////////////
   // threads
-  //// pots
+  // pots
   threadReadPots.setInterval(10);
   threadReadPots.onRun(readPots);
   cpu.add(&threadReadPots);
-  //// buttons
+  // buttons
   threadReadButtons.setInterval(20);
   threadReadButtons.onRun(readButtons);
   cpu.add(&threadReadButtons);
 
+  /////////////////////////////////////////////
+  //leds
+  analogWrite(ledOnOffPin, 10); // on/off led
+
+//  for (int i = 0; i < ledNum; i++) { // writeBit works just like digitalWrite
+//    ShiftPWM.SetOne(i, LOW);
+//  }
+
 }
 
 void loop() {
-
+  
+  
   cpu.run();
   MIDI.read();
   readEncoder();
+//
 
 }
 
@@ -272,20 +281,19 @@ void readPots() {
 void readEncoder () {
 
   int newPosition = myEnc.read();
-  int encoderVal = map(newPosition, -1024, 1024, -256, 256); // each encoder's click ouputs 4 numbers, this way it outputs just one
+  int encoderVal = map(newPosition, -1024, 1024, -256, 256);
   int encoderValue;
 
   if (encoderVal != oldPosition) {
 
     if ((encoderVal - oldPosition) > 0) {
-      encoderValue = 127; //if it turns clockwise ouputs 127 (this is for Traktor)
+      encoderValue = 127;
     }
     else {
-      encoderValue = 1; //if it turns counterclockwise ouputs 1 (this is for Traktor)
+      encoderValue = 1;
     }
 
-    //MIDI.sendControlChange(14, encoderValue, 1); //ouputs midi message 
-    Serial.println(newPosition);
+    MIDI.sendControlChange(14, encoderValue, 1);
 
     oldPosition = encoderVal;
   }
@@ -296,6 +304,9 @@ void readEncoder () {
 // led feedback
 void handleControlChange(byte channel, byte number, byte value) {
 
+  //handleControlChange
+
+  //int value_ = round(map(value, 0, 127, 0, 7));
   int value_ = value;
 
   if (value_ != ccLastValue) {
@@ -503,7 +514,7 @@ void handleNoteOff(byte channel, byte number, byte value) {
       ShiftPWM.SetOne(buttonsLedL[4], LOW);
       break;
 
-    // Right buttons
+    // Righ buttons
     case 44: //sync
       ShiftPWM.SetOne(buttonsLedR[0], LOW);
       break;
