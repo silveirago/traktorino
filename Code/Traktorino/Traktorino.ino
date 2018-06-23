@@ -41,7 +41,6 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 #include <Multiplexer4067.h> // Multiplexer CD4067 library >> https://github.com/sumotoy/Multiplexer4067
 #include <Thread.h> // Threads library >> https://github.com/ivanseidel/ArduinoThread
 #include <ThreadController.h> // Mesma lib de cima
-#include <Bounce2.h> // Debounce lib
 #include <Encoder.h>
 
 
@@ -79,7 +78,7 @@ unsigned long timer[NPots] = {0}; // armazena o tempo que passou desde que o tim
 
 /////////////////////////////////////////////
 // encoder
-Encoder myEnc(2, 3);
+Encoder myEnc(3, 2);
 long oldPosition  = -10;
 
 /////////////////////////////////////////////
