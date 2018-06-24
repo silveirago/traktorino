@@ -1,21 +1,17 @@
-/* DIY MIDI Controller
+/* Traktorino
 
-  Esta sketch permite transformar um Arduino Micro, Pro Micro, ou Leonardo (nao testado),
-  em um controlador MIDI class compliante. Ou seja, nao ha necessidade de nenhum conversor serial,
-  como o Hairless Midi.
+   The Traktorino is a low-cost DIY MIDI controller for DJs, based in the Arduino platform. 
+   It can control any software that accepts MIDI, like Traktor, Serato, or even Ableton Live. 
+   The Traktorino is completely open-source, which means you can download the code and all the schematics, so you can make one yourself! 
+   And if you want to build this controller, you can buy the kit from us, this way, you will be helping more projects like this to happen! 
 
-  /// Licensa ///
-
-  Este codigo esta licensisado sob forma de "pagamento de cerveja" (se possivel) e
-  "dar os devidos creditos" (sempre).
-
-  Feito por Gustavo Silveira, 2017.
-
-  http://www.musiconerd.com
-  http://www.bitcontrollers.com
-  gustavosilveira@musiconerd.com
-
+   http://www.musiconerd.com/shop >> buy a Traktorino kit
+   http://www.musiconerd.com/traktorino >> learn more about the Traktorino
+   http://github.com/silveirago/traktorino >> Download the traktorino files
+   gustavosilveira@musiconerd.com >> Send me a message if you have any doubt
+ 
 */
+
 /////////////////////////////////////////////
 // PWM bit shifter
 // You can choose the latch pin yourself.
@@ -34,14 +30,14 @@ const bool ShiftPWM_invertOutputs = false;
 // This will be a bit easier on your power supply, because the current peaks are distributed.
 const bool ShiftPWM_balanceLoad = false;
 
-#include <ShiftPWM.h>   // include ShiftPWM.h after setting the pins!
+#include <ShiftPWM.h>  // Bit shifter library >> https://github.com/elcojacobs/ShiftPWM - include ShiftPWM.h after setting the pins!
 // If using with ATmega328 - Uno, Mega, Nano...
 #include <MIDI.h>
 MIDI_CREATE_DEFAULT_INSTANCE();
 #include <Multiplexer4067.h> // Multiplexer CD4067 library >> https://github.com/sumotoy/Multiplexer4067
 #include <Thread.h> // Threads library >> https://github.com/ivanseidel/ArduinoThread
-#include <ThreadController.h> // Mesma lib de cima
-#include <Encoder.h>
+#include <ThreadController.h> 
+#include <Encoder.h> // Encoder library >> https://github.com/PaulStoffregen/Encoder
 
 
 /////////////////////////////////////////////
