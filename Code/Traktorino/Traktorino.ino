@@ -30,12 +30,14 @@ const bool ShiftPWM_invertOutputs = false;
 // This will be a bit easier on your power supply, because the current peaks are distributed.
 const bool ShiftPWM_balanceLoad = false;
 
+/////////////////////////////////////////////
+// LIBRARIES
 #include <ShiftPWM.h>  // Bit shifter library >> https://github.com/elcojacobs/ShiftPWM - include ShiftPWM.h after setting the pins!
 // If using with ATmega328 - Uno, Mega, Nano...
-#include <MIDI.h>
+#include <MIDI.h> // MIDI library (by Forty Seven Effects) >> https://github.com/FortySevenEffects/arduino_midi_library/releases/tag/4.3.1
 MIDI_CREATE_DEFAULT_INSTANCE();
 #include <Multiplexer4067.h> // Multiplexer CD4067 library >> https://github.com/sumotoy/Multiplexer4067
-#include <Thread.h> // Threads library >> https://github.com/ivanseidel/ArduinoThread
+#include <Thread.h> // Threads library (by Ivan seidel) >> https://github.com/ivanseidel/ArduinoThread
 #include <ThreadController.h> 
 #include <Encoder.h> // Encoder library >> https://github.com/PaulStoffregen/Encoder
 
