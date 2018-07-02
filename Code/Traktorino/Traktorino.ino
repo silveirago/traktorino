@@ -20,7 +20,7 @@ const int ShiftPWM_latchPin = 8;
 // ** uncomment this part to NOT use the SPI port and change the pin numbers. This is 2.5x slower **
 #define SHIFTPWM_NOSPI
 const int ShiftPWM_dataPin = 11;
-const int ShiftPWM_clockPin = 12;
+const int ShiftPWM_clockPin = 12; 
 
 // If your LED's turn on if the pin is low, set this to true, otherwise set it to false.
 const bool ShiftPWM_invertOutputs = false;
