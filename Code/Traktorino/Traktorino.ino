@@ -138,6 +138,12 @@ void setup() {
   pinMode(A1, INPUT_PULLUP); // Buttons need input pull up
 
   /////////////////////////////////////////////
+  // buttons on Arduino Digital pins
+  for (int i = 0; i < NButtons; i++) { // buttons on Digital pins
+    pinMode(buttonPin[i], INPUT_PULLUP);
+  }
+  
+  /////////////////////////////////////////////
   // Leds
   //  leds.setBitCount(ledNum); // Mux Leds
   //  leds.setPins(clockPin, dataPin, latchPin);
