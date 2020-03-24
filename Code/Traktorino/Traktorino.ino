@@ -125,10 +125,11 @@ void setup() {
 
   Serial.begin(31250); // 115200 for hairless - 31250 for MOCO lufa
   
-  MIDI.turnThruOff();
-  
   /////////////////////////////////////////////
   // Midi in
+  MIDI.turnThruOff();
+  MIDI.setInputChannel(midiCh);
+  
   MIDI.setHandleControlChange(handleControlChange);
   MIDI.setHandleNoteOn(handleNoteOn);
   MIDI.setHandleNoteOff(handleNoteOff);
@@ -144,7 +145,7 @@ void setup() {
   for (int i = 0; i < NButtons; i++) { // buttons on Digital pins
     pinMode(buttonPin[i], INPUT_PULLUP);
   }
-  
+
   /////////////////////////////////////////////
   // Leds
   //  leds.setBitCount(ledNum); // Mux Leds
@@ -183,13 +184,9 @@ void setup() {
 }
 
 void loop() {
-  
-  
   cpu.run();
   MIDI.read();
   readEncoder();
-//
-
 }
 
 /////////////////////////////////////////////
@@ -271,7 +268,7 @@ void readPots() {
       if (lastCcValue[i] != ccValue) {
         //        controlChange(11, cc + i, ccValue); // manda control change (channel, CC, value)
         //        MidiUSB.flush();
-        MIDI.sendControlChange(cc + i, map(potCState[i], 0, 1023, 0, 127), 11); // envia Control Change (numero do CC, valor do CC, canal midi)
+        MIDI.sendControlChange(cc + i, map(potCState[i], 0, 1023, 0, 127), midiCh); // envia Control Change (numero do CC, valor do CC, canal midi)
         //Serial.print("CC: "); Serial.print(cc + i); Serial.print(" value:"); Serial.println(map(potCState[i], 0, 1023, 0, 127));
         potPState[i] = potCState[i]; // armazena a leitura atual do potenciometro para comparar com a proxima
         lastCcValue[i] = ccValue;
@@ -298,7 +295,7 @@ void readEncoder () {
       encoderValue = 1;
     }
 
-    MIDI.sendControlChange(14, encoderValue, 1);
+    MIDI.sendControlChange(15, encoderValue, midiCh);
 
     oldPosition = encoderVal;
   }
