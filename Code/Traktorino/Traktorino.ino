@@ -45,10 +45,10 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 /////////////////////////////////////////////
 // buttons
 const byte muxNButtons = 13; // *coloque aqui o numero de entradas digitais utilizadas no multiplexer
-const byte NButtons = 1; // *coloque aqui o numero de entradas digitais utilizadas
+const byte NButtons = 6; // *coloque aqui o numero de entradas digitais utilizadas
 const byte totalButtons = muxNButtons + NButtons;
 const byte muxButtonPin[muxNButtons] = {0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15}; // *neste array coloque na ordem desejada os pinos das portas digitais utilizadas
-const byte buttonPin[NButtons] = {9}; // *neste array coloque na ordem desejada os pinos das portas digitais utilizadas
+const byte buttonPin[NButtons] = {9, 13, A2, A3, A4, A5}; // *neste array coloque na ordem desejada os pinos das portas digitais utilizadas
 int buttonCState[totalButtons] = {0}; // estado atual da porta digital
 int buttonPState[totalButtons] = {0}; // estado previo da porta digital
 
@@ -141,8 +141,8 @@ void setup() {
 
   /////////////////////////////////////////////
   // buttons on Arduino Digital pins
-  for (int i = 0; i < NButtons; i++) { //read buttons on Arduino
-    pinMode(buttonPin[i], INPUT_PULLUP); // stores in the rest of buttonCState
+  for (int i = 0; i < NButtons; i++) { // buttons on Digital pins
+    pinMode(buttonPin[i], INPUT_PULLUP);
   }
   
   /////////////////////////////////////////////
