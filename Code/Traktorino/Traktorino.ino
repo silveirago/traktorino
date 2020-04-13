@@ -124,7 +124,9 @@ Thread threadReadButtons; // thread para controlar os botoes
 void setup() {
 
   Serial.begin(31250); // 115200 for hairless - 31250 for MOCO lufa
-
+  
+  MIDI.turnThruOff();
+  
   /////////////////////////////////////////////
   // Midi in
   MIDI.setHandleControlChange(handleControlChange);
