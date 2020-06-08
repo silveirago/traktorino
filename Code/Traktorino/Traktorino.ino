@@ -38,7 +38,7 @@ const bool ShiftPWM_balanceLoad = false;
 MIDI_CREATE_DEFAULT_INSTANCE();
 #include <Multiplexer4067.h> // Multiplexer CD4067 library >> https://github.com/sumotoy/Multiplexer4067
 #include <Thread.h> // Threads library (by Ivan seidel) >> https://github.com/ivanseidel/ArduinoThread
-#include <ThreadController.h> 
+#include <StaticThreadController.h> 
 #include <Encoder.h> // Encoder library >> https://github.com/PaulStoffregen/Encoder
 
 
@@ -116,9 +116,9 @@ Multiplexer4067 mplexButtons = Multiplexer4067(4, 5, 6, 7, A1);
 
 /////////////////////////////////////////////
 // threads - programa cada atividade do Arduino para acontecer em um determinado tempo
-ThreadController cpu; //thread master, onde as outras vao ser adicionadas
 Thread threadReadPots; // thread para controlar os pots
 Thread threadReadButtons; // thread para controlar os botoes
+StaticThreadController<2> cpu(&threadReadPots, &threadReadButtons); //thread master, onde as outras vao ser adicionadas
 
 /////////////////////////////////////////////
 void setup() {
@@ -166,11 +166,9 @@ void setup() {
   // pots
   threadReadPots.setInterval(10);
   threadReadPots.onRun(readPots);
-  cpu.add(&threadReadPots);
   // buttons
   threadReadButtons.setInterval(20);
   threadReadButtons.onRun(readButtons);
-  cpu.add(&threadReadButtons);
 
   /////////////////////////////////////////////
   //leds
