@@ -144,7 +144,7 @@ void setup() {
 
   /////////////////////////////////////////////
   // buttons on Arduino Digital pins
-  for (int i = 0; i < NButtons; i++) { // buttons on Digital pins
+  for (int i = 0; i < NButtons; i++) { // buttons on Digital pin
     pinMode(buttonPin[i], INPUT_PULLUP);
   }
   
