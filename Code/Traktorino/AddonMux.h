@@ -2,8 +2,8 @@
 #define _ADDONMUX_H_
 
 /**
-  An additional 4067 multiplexer can be added to the Traktorino via broken-out mux pins at the bottom of the PCB.
-  Pins 10, 11, 14, and 13 correspond to the address lines on the 4067 mux, e.g. S0, S1, S2, and S3, respectively.
+ * An additional 4067 multiplexer can be added to the Traktorino via broken-out mux pins at the bottom of the PCB.
+ * Pins 10, 11, 14, and 13 correspond to the address lines on the 4067 mux, e.g. S0, S1, S2, and S3, respectively.
  */
  
 // uncomment to enable add-on multiplexer
@@ -14,7 +14,6 @@
 Multiplexer4067Fast<4, 5, 6, 7> mplexAddon(A5);
 
 // these fields should be customized to reflect what you've attached to your add-on multiplexer
-
 const byte muxNAddonButtons = 16;
 const byte muxAddonButtonPin[muxNAddonButtons] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
