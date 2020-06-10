@@ -3,7 +3,7 @@ The open-source DIY MIDI Controller for DJs.
 
 For more info vist: www.musiconerd.com/traktorino
 
-# Libraries
+## Libraries
 Traktorino is built on top of the following Arduino Libraries:
 - ShiftPWM - Bit shifter library https://github.com/elcojacobs/ShiftPWM
 - MIDI Library - by Forty Seven Effects https://github.com/FortySevenEffects/arduino_midi_library
