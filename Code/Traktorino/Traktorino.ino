@@ -45,9 +45,11 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 /////////////////////////////////////////////
 // buttons
 const byte muxNButtons = 13; // *coloque aqui o numero de entradas digitais utilizadas no multiplexer
+const byte muxNAddonButtons = 16;
 const byte NButtons = 1; // *coloque aqui o numero de entradas digitais utilizadas
-const byte totalButtons = muxNButtons + NButtons;
+const byte totalButtons = muxNButtons + muxNAddonButtons + NButtons;
 const byte muxButtonPin[muxNButtons] = {0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15}; // *neste array coloque na ordem desejada os pinos das portas digitais utilizadas
+const byte muxAddonButtonPin[muxNAddonButtons] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 const byte buttonPin[NButtons] = {9}; // *neste array coloque na ordem desejada os pinos das portas digitais utilizadas
 int buttonCState[totalButtons] = {0}; // estado atual da porta digital
 int buttonPState[totalButtons] = {0}; // estado previo da porta digital
@@ -60,9 +62,11 @@ unsigned long debounceDelay = 5;    // the debounce time; increase if the output
 /////////////////////////////////////////////
 // potentiometers
 const byte muxNPots = 14; // *coloque aqui o numero de entradas analogicas utilizadas
+const byte muxNAddonPots = 0;
 const byte NPots = 0; // put the number of pots on analog pins here
-const byte totalPots = muxNPots + NPots;
+const byte totalPots = muxNPots + muxNAddonPots + NPots;
 const byte muxPotPin[muxNPots] = {0, 1, 2, 3, 4, 5, 6, 15, 14, 13, 12, 11, 10, 8}; // *neste array coloque na ordem desejada os pinos das portas analogicas, ou mux channel, utilizadas
+const byte muxAddonPotPin[muxNAddonPots] = {};
 const byte potPin[NPots] = {};
 int potCState[totalPots] = {0}; // estado atual da porta analogica
 int potPState[totalPots] = {0}; // estado previo da porta analogica
@@ -116,6 +120,7 @@ byte ledOnOffPin = 10; //On Off pin
 // Multiplexer
 Multiplexer4067 mplexPots = Multiplexer4067(4, 5, 6, 7, A0);
 Multiplexer4067 mplexButtons = Multiplexer4067(4, 5, 6, 7, A1);
+Multiplexer4067 mplexAddon = Multiplexer4067(4, 5, 6, 7, A5);
 
 /////////////////////////////////////////////
 // threads - programa cada atividade do Arduino para acontecer em um determinado tempo
@@ -139,8 +144,9 @@ void setup() {
   // Multiplexers
   mplexPots.begin(); // inicializa o multiplexer
   mplexButtons.begin(); // inicializa o multiplexer
+  mplexAddon.begin();
   pinMode(A1, INPUT_PULLUP); // Buttons need input pull up
-
+  
   /////////////////////////////////////////////
   // buttons on Arduino Digital pins
   for (int i = 0; i < NButtons; i++) { // buttons on Digital pin
@@ -195,8 +201,21 @@ void readButtons() {
     }
   }
 
+  if (muxNAddonButtons > 0) { //reads buttons on add-on mux
+    pinMode(A5, INPUT_PULLUP);
+    for (int i = 0; i < muxNAddonButtons; i++) { //reads buttons on muxAddon
+      int buttonReading = mplexAddon.readChannel(muxAddonButtonPin[i]);
+      if (buttonReading > 100) {
+        buttonCState[i + muxNButtons] = HIGH;
+      }
+      else {
+        buttonCState[i + muxNButtons] = LOW;
+      }
+    }
+  }
+
   for (int i = 0; i < NButtons; i++) { //read buttons on Arduino
-    buttonCState[i + muxNButtons] = digitalRead(buttonPin[i]); // stores in the rest of buttonCState
+    buttonCState[i + muxNButtons + muxNAddonButtons] = digitalRead(buttonPin[i]); // stores in the rest of buttonCState
   }
 
   for (int i = 0; i < totalButtons; i++) {
@@ -226,11 +245,18 @@ void readPots() {
   for (int i = 0; i < muxNPots; i++) { // le todas entradas analogicas utilizadas, menos a dedicada a troca do canal midi
     potCState[i] = mplexPots.readChannel(muxPotPin[i]);
   }
-
-  for (int i = 0; i < NPots; i++) { // read pots attached to analog pins
-    potCState[i + muxNPots] = analogRead(potPin[i]);
+  
+  if (muxNAddonPots > 0) {
+    pinMode(A5, INPUT);
+    for (int i = 0; i < muxNAddonPots; i++) { // reads pots on add-on mux
+      potCState[i + muxNPots] = mplexAddon.readChannel(muxAddonPotPin[i]);
+    }
   }
-
+  
+  for (int i = 0; i < NPots; i++) { // read pots attached to analog pins
+    potCState[i + muxNPots + muxNAddonPots] = analogRead(potPin[i]);
+  }
+  
   for (int i = 0; i < totalPots; i++) {
     potVar = abs(potCState[i] - potPState[i]); // calcula a variacao da porta analogica
 
