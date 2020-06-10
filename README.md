@@ -3,9 +3,15 @@ The open-source DIY MIDI Controller for DJs.
 
 For more info vist: www.musiconerd.com/traktorino
 
+## rasprague fork
+This fork introduces several improvments:
+- speed enhancements
+- support for Arduino Mega Boards
+- more clear ways to extend the Traktorino hardware via extra Arduino pins, as well as via an add-on 4067 multiplexer
+
 ## Libraries
 Traktorino is built on top of the following Arduino Libraries:
-### installable via the Ardino Library Manager
+### installable via the Arduino Library Manager
 - MIDI Library - by Forty Seven Effects https://github.com/FortySevenEffects/arduino_midi_library
 - ArduinoThread - Threads library by Ivan seidel https://github.com/ivanseidel/ArduinoThread
 - Encoder library - by PaulStoffregen https://github.com/PaulStoffregen/Encoder
