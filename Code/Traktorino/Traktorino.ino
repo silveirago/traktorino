@@ -125,7 +125,6 @@ StaticThreadController<2> cpu(&threadReadPots, &threadReadButtons); //thread mas
 
 /////////////////////////////////////////////
 void setup() {
-
   Serial.begin(31250); // 115200 for hairless - 31250 for MOCO lufa
   
   MIDI.turnThruOff();
@@ -186,7 +185,6 @@ void loop() {
 // read buttons
 
 void readButtons() {
-
   for (int i = 0; i < muxNButtons; i++) { //reads buttons on mux
     int buttonReading = mplexButtons.readChannel(muxButtonPin[i]);
     if (buttonReading > 100) {
@@ -219,7 +217,6 @@ void readButtons() {
     }
 
   }
-
 }
 
 ////////////////////////////////////////////
