@@ -4,7 +4,7 @@ The open-source DIY MIDI Controller for DJs.
 For more info vist: www.musiconerd.com/traktorino
 
 ## rasprague fork
-This fork introduces several improvments:
+This fork introduces several improvments from the original Traktorino repo https://github.com/silveirago/traktorino:
 - speed enhancements
 - support for Arduino Mega Boards
 - more clear ways to extend the Traktorino hardware via extra Arduino pins, as well as via an add-on 4067 multiplexer
