@@ -36,7 +36,8 @@ const bool ShiftPWM_balanceLoad = false;
 // If using with ATmega328 - Uno, Mega, Nano...
 #include <MIDI.h> // MIDI library (by Forty Seven Effects) >> https://github.com/FortySevenEffects/arduino_midi_library/releases/tag/4.3.1
 MIDI_CREATE_DEFAULT_INSTANCE();
-#include <Multiplexer4067.h> // Multiplexer CD4067 library >> https://github.com/sumotoy/Multiplexer4067
+#include <digitalWriteFast.h> // digitalWriteFast library >> https://github.com/NicksonYap/digitalWriteFast
+#include <Multiplexer4067Fast.h> // Multiplexer CD4067 library >> https://github.com/rasprague/Multiplexer4067Fast
 #include <Thread.h> // Threads library (by Ivan seidel) >> https://github.com/ivanseidel/ArduinoThread
 #include <StaticThreadController.h> 
 #include <Encoder.h> // Encoder library >> https://github.com/PaulStoffregen/Encoder
@@ -118,9 +119,9 @@ byte ledOnOffPin = 10; //On Off pin
 
 /////////////////////////////////////////////
 // Multiplexer
-Multiplexer4067 mplexPots = Multiplexer4067(4, 5, 6, 7, A0);
-Multiplexer4067 mplexButtons = Multiplexer4067(4, 5, 6, 7, A1);
-Multiplexer4067 mplexAddon = Multiplexer4067(4, 5, 6, 7, A5);
+Multiplexer4067Fast<4, 5, 6, 7> mplexPots(A0);
+Multiplexer4067Fast<4, 5, 6, 7> mplexButtons(A1);
+Multiplexer4067 mplexAddon<4, 5, 6, 7> = Multiplexer4067(A5);
 
 /////////////////////////////////////////////
 // threads - programa cada atividade do Arduino para acontecer em um determinado tempo
