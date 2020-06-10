@@ -127,6 +127,7 @@ byte ledOnOffPin = 10; //On Off pin
 // Multiplexer
 Multiplexer4067Fast<4, 5, 6, 7> mplexPots(A0);
 Multiplexer4067Fast<4, 5, 6, 7> mplexButtons(A1);
+const int numReadings = 1;
 
 /////////////////////////////////////////////
 // threads - programa cada atividade do Arduino para acontecer em um determinado tempo
@@ -203,7 +204,7 @@ void loop() {
 void readButtons() {
   int iButton = 0;
   for (int i = 0; i < muxNButtons; i++, iButton++) { //reads buttons on mux
-    int buttonReading = mplexButtons.readChannel(muxButtonPin[i]);
+    int buttonReading = mplexButtons.readChannel(muxButtonPin[i], numReadings);
     if (buttonReading > 100) {
       buttonCState[iButton] = HIGH;
     }
@@ -216,7 +217,7 @@ void readButtons() {
   if (muxNAddonButtons > 0) { //reads buttons on add-on mux
     pinMode(A5, INPUT_PULLUP);
     for (int i = 0; i < muxNAddonButtons; i++, iButton++) { //reads buttons on muxAddon
-      int buttonReading = mplexAddon.readChannel(muxAddonButtonPin[i]);
+      int buttonReading = mplexAddon.readChannel(muxAddonButtonPin[i], numReadings);
       if (buttonReading > 100) {
         buttonCState[iButton] = HIGH;
       }
@@ -254,14 +255,14 @@ void readButtons() {
 void readPots() {
   int iPot = 0;
   for (int i = 0; i < muxNPots; i++, iPot++) { // le todas entradas analogicas utilizadas, menos a dedicada a troca do canal midi
-    potCState[iPot] = mplexPots.readChannel(muxPotPin[i]);
+    potCState[iPot] = mplexPots.readChannel(muxPotPin[i], numReadings);
   }
 
 #ifdef ADDONMUX
   if (muxNAddonPots > 0) {
     pinMode(A5, INPUT);
     for (int i = 0; i < muxNAddonPots; i++, iPot++) { // reads pots on add-on mux
-      potCState[iPot] = mplexAddon.readChannel(muxAddonPotPin[i]);
+      potCState[iPot] = mplexAddon.readChannel(muxAddonPotPin[i], numReadings);
     }
   }
 #endif
