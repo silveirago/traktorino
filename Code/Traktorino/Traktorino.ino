@@ -38,7 +38,7 @@ const bool ShiftPWM_balanceLoad = false;
 MIDI_CREATE_DEFAULT_INSTANCE();
 #include <Multiplexer4067.h> // Multiplexer CD4067 library >> https://github.com/sumotoy/Multiplexer4067
 #include <Thread.h> // Threads library (by Ivan seidel) >> https://github.com/ivanseidel/ArduinoThread
-#include <ThreadController.h> 
+#include <StaticThreadController.h> 
 #include <Encoder.h> // Encoder library >> https://github.com/PaulStoffregen/Encoder
 
 
@@ -124,13 +124,12 @@ Multiplexer4067 mplexAddon = Multiplexer4067(4, 5, 6, 7, A5);
 
 /////////////////////////////////////////////
 // threads - programa cada atividade do Arduino para acontecer em um determinado tempo
-ThreadController cpu; //thread master, onde as outras vao ser adicionadas
 Thread threadReadPots; // thread para controlar os pots
 Thread threadReadButtons; // thread para controlar os botoes
+StaticThreadController<2> cpu(&threadReadPots, &threadReadButtons); //thread master, onde as outras vao ser adicionadas
 
 /////////////////////////////////////////////
 void setup() {
-
   Serial.begin(31250); // 115200 for hairless - 31250 for MOCO lufa
   
   MIDI.turnThruOff();
@@ -156,8 +155,6 @@ void setup() {
   
   /////////////////////////////////////////////
   // Leds
-  //  leds.setBitCount(ledNum); // Mux Leds
-  //  leds.setPins(clockPin, dataPin, latchPin);
   pinMode(ledOnOffPin, OUTPUT);
 
   // Sets the number of 8-bit registers that are used.
@@ -175,37 +172,25 @@ void setup() {
   // pots
   threadReadPots.setInterval(10);
   threadReadPots.onRun(readPots);
-  cpu.add(&threadReadPots);
   // buttons
   threadReadButtons.setInterval(20);
   threadReadButtons.onRun(readButtons);
-  cpu.add(&threadReadButtons);
 
   /////////////////////////////////////////////
   //leds
   analogWrite(ledOnOffPin, 255); // on/off led
-
-//  for (int i = 0; i < ledNum; i++) { // writeBit works just like digitalWrite
-//    ShiftPWM.SetOne(i, LOW);
-//  }
-
 }
 
 void loop() {
-  
-  
   cpu.run();
   MIDI.read();
   readEncoder();
-//
-
 }
 
 /////////////////////////////////////////////
 // read buttons
 
 void readButtons() {
-
   for (int i = 0; i < muxNButtons; i++) { //reads buttons on mux
     int buttonReading = mplexButtons.readChannel(muxButtonPin[i]);
     if (buttonReading > 100) {
@@ -234,42 +219,33 @@ void readButtons() {
   }
 
   for (int i = 0; i < totalButtons; i++) {
-
     if ((millis() - lastDebounceTime) > debounceDelay) {
 
       if (buttonCState[i] != buttonPState[i]) {
         lastDebounceTime = millis();
 
         if (buttonCState[i] == LOW) {
-          //          noteOn(potMidiCh(), note + i, 127);  // Channel 0, middle C, normal velocity
-          //          MidiUSB.flush();
           MIDI.sendNoteOn(note + i, 127, midiCh); // envia NoteOn(nota, velocity, canal midi)
-          //Serial.print("Note: "); Serial.print(note + i); Serial.println(" On");
           buttonPState[i] = buttonCState[i];
         }
         else {
-          //          noteOn(potMidiCh(), note + i, 0);  // Channel 0, middle C, normal velocity
-          //          MidiUSB.flush();
           MIDI.sendNoteOn(note + i, 0, midiCh);
-          //Serial.print("Note: "); Serial.print(note + i); Serial.println(" Off");
           buttonPState[i] = buttonCState[i];
         }
       }
     }
 
   }
-
 }
 
 ////////////////////////////////////////////
 //read potentiometers
 
 void readPots() {
-
   for (int i = 0; i < muxNPots; i++) { // le todas entradas analogicas utilizadas, menos a dedicada a troca do canal midi
     potCState[i] = mplexPots.readChannel(muxPotPin[i]);
   }
-
+  
   if (muxNAddonPots > 0) {
     pinMode(A5, INPUT);
     for (int i = 0; i < muxNAddonPots; i++) { // reads pots on add-on mux
@@ -280,9 +256,8 @@ void readPots() {
   for (int i = 0; i < NPots; i++) { // read pots attached to analog pins
     potCState[i + muxNPots + muxNAddonPots] = analogRead(potPin[i]);
   }
-
+  
   for (int i = 0; i < totalPots; i++) {
-
     potVar = abs(potCState[i] - potPState[i]); // calcula a variacao da porta analogica
 
     if (potVar >= varThreshold) {  //sets a threshold for the variance in the pot state, if it varies more than x it sends the cc message
@@ -299,28 +274,22 @@ void readPots() {
     if (potMoving == true) { // se o potenciometro ainda esta se movendo, mande o control change
       int ccValue = map(potCState[i], 0, 1023, 0, 127);
       if (lastCcValue[i] != ccValue) {
-        //        controlChange(11, cc + i, ccValue); // manda control change (channel, CC, value)
-        //        MidiUSB.flush();
         MIDI.sendControlChange(cc + i, map(potCState[i], 0, 1023, 0, 127), 11); // envia Control Change (numero do CC, valor do CC, canal midi)
-        //Serial.print("CC: "); Serial.print(cc + i); Serial.print(" value:"); Serial.println(map(potCState[i], 0, 1023, 0, 127));
         potPState[i] = potCState[i]; // armazena a leitura atual do potenciometro para comparar com a proxima
         lastCcValue[i] = ccValue;
       }
     }
   }
-
 }
 
 ////////////////////////////////////////////
 //// read encoder
 void readEncoder () {
-
   int newPosition = myEnc.read();
   int encoderVal = map(newPosition, -1024, 1024, -256, 256);
   int encoderValue;
 
   if (encoderVal != oldPosition) {
-
     if ((encoderVal - oldPosition) > 0) {
       encoderValue = 127;
     }
@@ -332,23 +301,17 @@ void readEncoder () {
 
     oldPosition = encoderVal;
   }
-
 }
 
 ////////////////////////////////////////////
 // led feedback
 void handleControlChange(byte channel, byte number, byte value) {
-
-  //handleControlChange
-
-  //int value_ = round(map(value, 0, 127, 0, 7));
   int value_ = value;
 
   if (value_ != ccLastValue) {
 
     // Left VU
     if (number == 12) {
-
       switch (value_) {
         case 0:
           for (int i = 0; i < 7; i++) {
@@ -417,7 +380,6 @@ void handleControlChange(byte channel, byte number, byte value) {
 
     // Right VU
     if (number == 13) {
-
       switch (value_) {
         case 0:
           for (int i = 0; i < 7; i++) {
@@ -485,12 +447,9 @@ void handleControlChange(byte channel, byte number, byte value) {
     }
     ccLastValue = value;
   }
-
 }
 
-void handleNoteOn(byte channel, byte number, byte value)
-{
-
+void handleNoteOn(byte channel, byte number, byte value) {
   switch (number) {
     // Left buttons
     case 40: //sync
@@ -526,11 +485,9 @@ void handleNoteOn(byte channel, byte number, byte value)
       ShiftPWM.SetOne(buttonsLedR[4], blue);
       break;
   }
-
 }
 
 void handleNoteOff(byte channel, byte number, byte value) {
-
   switch (number) {
     // Left buttons
     case 40: //sync
@@ -566,7 +523,6 @@ void handleNoteOff(byte channel, byte number, byte value) {
       ShiftPWM.SetOne(buttonsLedR[4], LOW);
       break;
   }
-
 }
 
 /*
