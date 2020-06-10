@@ -38,7 +38,7 @@ const bool ShiftPWM_balanceLoad = false;
 MIDI_CREATE_DEFAULT_INSTANCE();
 #include <Multiplexer4067.h> // Multiplexer CD4067 library >> https://github.com/sumotoy/Multiplexer4067
 #include <Thread.h> // Threads library (by Ivan seidel) >> https://github.com/ivanseidel/ArduinoThread
-#include <ThreadController.h> 
+#include <StaticThreadController.h> 
 #include <Encoder.h> // Encoder library >> https://github.com/PaulStoffregen/Encoder
 
 
@@ -59,20 +59,23 @@ unsigned long debounceDelay = 5;    // the debounce time; increase if the output
 
 /////////////////////////////////////////////
 // potentiometers
-const byte NPots = 14; // *coloque aqui o numero de entradas analogicas utilizadas
-const byte muxPotPin[NPots] = {0, 1, 2, 3, 4, 5, 6, 15, 14, 13, 12, 11, 10, 8}; // *neste array coloque na ordem desejada os pinos das portas analogicas, ou mux channel, utilizadas
-int potCState[NPots] = {0}; // estado atual da porta analogica
-int potPState[NPots] = {0}; // estado previo da porta analogica
+const byte muxNPots = 14; // *coloque aqui o numero de entradas analogicas utilizadas
+const byte NPots = 0; // put the number of pots on analog pins here
+const byte totalPots = muxNPots + NPots;
+const byte muxPotPin[muxNPots] = {0, 1, 2, 3, 4, 5, 6, 15, 14, 13, 12, 11, 10, 8}; // *neste array coloque na ordem desejada os pinos das portas analogicas, ou mux channel, utilizadas
+const byte potPin[NPots] = {};
+int potCState[totalPots] = {0}; // estado atual da porta analogica
+int potPState[totalPots] = {0}; // estado previo da porta analogica
 int potVar = 0; // variacao entre o valor do estado previo e o atual da porta analogica
-int lastCcValue[NPots] = {0};
+int lastCcValue[totalPots] = {0};
 
 /////////////////////////////////////////////
 // pot reading
 int TIMEOUT = 50; //quantidade de tempo em que o potenciometro sera lido apos ultrapassar o varThreshold
 byte varThreshold = 8; //threshold para a variacao no sinal do potenciometro
 boolean potMoving = true; // se o potenciometro esta se movendo
-unsigned long pTime[NPots] = {0}; // tempo armazenado anteriormente
-unsigned long timer[NPots] = {0}; // armazena o tempo que passou desde que o timer foi zerado
+unsigned long pTime[totalPots] = {0}; // tempo armazenado anteriormente
+unsigned long timer[totalPots] = {0}; // armazena o tempo que passou desde que o timer foi zerado
 
 /////////////////////////////////////////////
 // encoder
@@ -116,9 +119,9 @@ Multiplexer4067 mplexButtons = Multiplexer4067(4, 5, 6, 7, A1);
 
 /////////////////////////////////////////////
 // threads - programa cada atividade do Arduino para acontecer em um determinado tempo
-ThreadController cpu; //thread master, onde as outras vao ser adicionadas
 Thread threadReadPots; // thread para controlar os pots
 Thread threadReadButtons; // thread para controlar os botoes
+StaticThreadController<2> cpu(&threadReadPots, &threadReadButtons); //thread master, onde as outras vao ser adicionadas
 
 /////////////////////////////////////////////
 void setup() {
@@ -164,11 +167,9 @@ void setup() {
   // pots
   threadReadPots.setInterval(10);
   threadReadPots.onRun(readPots);
-  cpu.add(&threadReadPots);
   // buttons
   threadReadButtons.setInterval(20);
   threadReadButtons.onRun(readButtons);
-  cpu.add(&threadReadButtons);
 
   /////////////////////////////////////////////
   //leds
@@ -225,11 +226,15 @@ void readButtons() {
 //read potentiometers
 
 void readPots() {
-  for (int i = 0; i < NPots; i++) { // le todas entradas analogicas utilizadas, menos a dedicada a troca do canal midi
+  for (int i = 0; i < muxNPots; i++) { // le todas entradas analogicas utilizadas, menos a dedicada a troca do canal midi
     potCState[i] = mplexPots.readChannel(muxPotPin[i]);
   }
 
-  for (int i = 0; i < NPots; i++) {
+  for (int i = 0; i < NPots; i++) { // read pots attached to analog pins
+    potCState[i + muxNPots] = analogRead(potPin[i]);
+  }
+
+  for (int i = 0; i < totalPots; i++) {
     potVar = abs(potCState[i] - potPState[i]); // calcula a variacao da porta analogica
 
     if (potVar >= varThreshold) {  //sets a threshold for the variance in the pot state, if it varies more than x it sends the cc message
