@@ -132,10 +132,11 @@ StaticThreadController<2> cpu(&threadReadPots, &threadReadButtons); //thread mas
 void setup() {
   Serial.begin(31250); // 115200 for hairless - 31250 for MOCO lufa
   
-  MIDI.turnThruOff();
-  
   /////////////////////////////////////////////
   // Midi in
+  MIDI.turnThruOff();
+  MIDI.setInputChannel(midiCh);
+  
   MIDI.setHandleControlChange(handleControlChange);
   MIDI.setHandleNoteOn(handleNoteOn);
   MIDI.setHandleNoteOff(handleNoteOff);
@@ -152,7 +153,7 @@ void setup() {
   for (int i = 0; i < NButtons; i++) { // buttons on Digital pin
     pinMode(buttonPin[i], INPUT_PULLUP);
   }
-  
+
   /////////////////////////////////////////////
   // Leds
   pinMode(ledOnOffPin, OUTPUT);
@@ -183,13 +184,14 @@ void setup() {
 
 void loop() {
   cpu.run();
-  MIDI.read();
+  while(MIDI.read()) {
+    // read entire miid in buffer
+  }
   readEncoder();
 }
 
 /////////////////////////////////////////////
 // read buttons
-
 void readButtons() {
   for (int i = 0; i < muxNButtons; i++) { //reads buttons on mux
     int buttonReading = mplexButtons.readChannel(muxButtonPin[i]);
@@ -220,7 +222,6 @@ void readButtons() {
 
   for (int i = 0; i < totalButtons; i++) {
     if ((millis() - lastDebounceTime) > debounceDelay) {
-
       if (buttonCState[i] != buttonPState[i]) {
         lastDebounceTime = millis();
 
@@ -234,13 +235,11 @@ void readButtons() {
         }
       }
     }
-
   }
 }
 
 ////////////////////////////////////////////
 //read potentiometers
-
 void readPots() {
   for (int i = 0; i < muxNPots; i++) { // le todas entradas analogicas utilizadas, menos a dedicada a troca do canal midi
     potCState[i] = mplexPots.readChannel(muxPotPin[i]);
@@ -274,7 +273,7 @@ void readPots() {
     if (potMoving == true) { // se o potenciometro ainda esta se movendo, mande o control change
       int ccValue = map(potCState[i], 0, 1023, 0, 127);
       if (lastCcValue[i] != ccValue) {
-        MIDI.sendControlChange(cc + i, map(potCState[i], 0, 1023, 0, 127), 11); // envia Control Change (numero do CC, valor do CC, canal midi)
+        MIDI.sendControlChange(cc + i, map(potCState[i], 0, 1023, 0, 127), midiCh); // envia Control Change (numero do CC, valor do CC, canal midi)
         potPState[i] = potCState[i]; // armazena a leitura atual do potenciometro para comparar com a proxima
         lastCcValue[i] = ccValue;
       }
@@ -297,7 +296,7 @@ void readEncoder () {
       encoderValue = 1;
     }
 
-    MIDI.sendControlChange(14, encoderValue, 1);
+    MIDI.sendControlChange(20, encoderValue, midiCh);
 
     oldPosition = encoderVal;
   }
@@ -309,7 +308,6 @@ void handleControlChange(byte channel, byte number, byte value) {
   int value_ = value;
 
   if (value_ != ccLastValue) {
-
     // Left VU
     if (number == 12) {
       switch (value_) {
