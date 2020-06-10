@@ -1,0 +1,6 @@
+NOTES
+
+Traktorino branch that adds support for buttons and potentiometers on an add-on 4067 multiplexer
+
+An additional multiplexer can be added to the Traktorino via broken-out mux pins at the bottom of the PCB.
+Pins 10, 11, 14, and 13 correspond to the address lines on the 4067 mux, e.g. S0, S1, S2, and S3, respectively.
