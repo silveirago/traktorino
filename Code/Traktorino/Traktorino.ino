@@ -9,7 +9,8 @@
    http://www.musiconerd.com/traktorino >> learn more about the Traktorino
    http://github.com/silveirago/traktorino >> Download the traktorino files
    gustavosilveira@musiconerd.com >> Send me a message if you have any doubt
- 
+
+   ongoing code improvements by rasprague https://github.com/rasprague/traktorino
 */
 
 /////////////////////////////////////////////
