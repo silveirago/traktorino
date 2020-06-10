@@ -122,7 +122,6 @@ Thread threadReadButtons; // thread para controlar os botoes
 
 /////////////////////////////////////////////
 void setup() {
-
   Serial.begin(31250); // 115200 for hairless - 31250 for MOCO lufa
   
   /////////////////////////////////////////////
@@ -176,80 +175,59 @@ void setup() {
   /////////////////////////////////////////////
   //leds
   analogWrite(ledOnOffPin, 255); // on/off led
-
-//  for (int i = 0; i < ledNum; i++) { // writeBit works just like digitalWrite
-//    ShiftPWM.SetOne(i, LOW);
-//  }
-
 }
 
 void loop() {
   cpu.run();
-  MIDI.read();
+  while(MIDI.read()) {
+    // read entire miid in buffer
+  }
   readEncoder();
 }
 
 /////////////////////////////////////////////
 // read buttons
-
 void readButtons() {
-
   for (int i = 0; i < muxNButtons; i++) { //reads buttons on mux
     int buttonReading = mplexButtons.readChannel(muxButtonPin[i]);
-    //buttonCState[i] = map(mplex.readChannel(muxButtonPin[i]), 22, 1023, 0, 2); // stores on buttonCState
     if (buttonReading > 100) {
       buttonCState[i] = HIGH;
     }
     else {
       buttonCState[i] = LOW;
     }
-    //Serial.print(buttonCState[i]); Serial.print("   ");
   }
-  //Serial.println();
 
   for (int i = 0; i < NButtons; i++) { //read buttons on Arduino
     buttonCState[i + muxNButtons] = digitalRead(buttonPin[i]); // stores in the rest of buttonCState
   }
 
   for (int i = 0; i < totalButtons; i++) {
-
     if ((millis() - lastDebounceTime) > debounceDelay) {
-
       if (buttonCState[i] != buttonPState[i]) {
         lastDebounceTime = millis();
 
         if (buttonCState[i] == LOW) {
-          //          noteOn(potMidiCh(), note + i, 127);  // Channel 0, middle C, normal velocity
-          //          MidiUSB.flush();
           MIDI.sendNoteOn(note + i, 127, midiCh); // envia NoteOn(nota, velocity, canal midi)
-          //Serial.print("Note: "); Serial.print(note + i); Serial.println(" On");
           buttonPState[i] = buttonCState[i];
         }
         else {
-          //          noteOn(potMidiCh(), note + i, 0);  // Channel 0, middle C, normal velocity
-          //          MidiUSB.flush();
           MIDI.sendNoteOn(note + i, 0, midiCh);
-          //Serial.print("Note: "); Serial.print(note + i); Serial.println(" Off");
           buttonPState[i] = buttonCState[i];
         }
       }
     }
-
   }
-
 }
 
 ////////////////////////////////////////////
 //read potentiometers
-
 void readPots() {
-
   for (int i = 0; i < NPots; i++) { // le todas entradas analogicas utilizadas, menos a dedicada a troca do canal midi
     potCState[i] = mplexPots.readChannel(muxPotPin[i]);
   }
 
   for (int i = 0; i < NPots; i++) {
-
     potVar = abs(potCState[i] - potPState[i]); // calcula a variacao da porta analogica
 
     if (potVar >= varThreshold) {  //sets a threshold for the variance in the pot state, if it varies more than x it sends the cc message
@@ -266,22 +244,17 @@ void readPots() {
     if (potMoving == true) { // se o potenciometro ainda esta se movendo, mande o control change
       int ccValue = map(potCState[i], 0, 1023, 0, 127);
       if (lastCcValue[i] != ccValue) {
-        //        controlChange(11, cc + i, ccValue); // manda control change (channel, CC, value)
-        //        MidiUSB.flush();
         MIDI.sendControlChange(cc + i, map(potCState[i], 0, 1023, 0, 127), midiCh); // envia Control Change (numero do CC, valor do CC, canal midi)
-        //Serial.print("CC: "); Serial.print(cc + i); Serial.print(" value:"); Serial.println(map(potCState[i], 0, 1023, 0, 127));
         potPState[i] = potCState[i]; // armazena a leitura atual do potenciometro para comparar com a proxima
         lastCcValue[i] = ccValue;
       }
     }
   }
-
 }
 
 ////////////////////////////////////////////
 //// read encoder
 void readEncoder () {
-
   int newPosition = myEnc.read();
   int encoderVal = map(newPosition, -1024, 1024, -256, 256);
   int encoderValue;
@@ -295,27 +268,20 @@ void readEncoder () {
       encoderValue = 1;
     }
 
-    MIDI.sendControlChange(15, encoderValue, midiCh);
+    MIDI.sendControlChange(20, encoderValue, midiCh);
 
     oldPosition = encoderVal;
   }
-
 }
 
 ////////////////////////////////////////////
 // led feedback
 void handleControlChange(byte channel, byte number, byte value) {
-
-  //handleControlChange
-
-  //int value_ = round(map(value, 0, 127, 0, 7));
   int value_ = value;
 
   if (value_ != ccLastValue) {
-
     // Left VU
     if (number == 12) {
-
       switch (value_) {
         case 0:
           for (int i = 0; i < 7; i++) {
@@ -384,7 +350,6 @@ void handleControlChange(byte channel, byte number, byte value) {
 
     // Right VU
     if (number == 13) {
-
       switch (value_) {
         case 0:
           for (int i = 0; i < 7; i++) {
@@ -452,12 +417,9 @@ void handleControlChange(byte channel, byte number, byte value) {
     }
     ccLastValue = value;
   }
-
 }
 
-void handleNoteOn(byte channel, byte number, byte value)
-{
-
+void handleNoteOn(byte channel, byte number, byte value) {
   switch (number) {
     // Left buttons
     case 40: //sync
@@ -493,11 +455,9 @@ void handleNoteOn(byte channel, byte number, byte value)
       ShiftPWM.SetOne(buttonsLedR[4], blue);
       break;
   }
-
 }
 
 void handleNoteOff(byte channel, byte number, byte value) {
-
   switch (number) {
     // Left buttons
     case 40: //sync
@@ -533,7 +493,6 @@ void handleNoteOff(byte channel, byte number, byte value) {
       ShiftPWM.SetOne(buttonsLedR[4], LOW);
       break;
   }
-
 }
 
 /*
