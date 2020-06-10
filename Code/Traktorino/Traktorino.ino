@@ -42,15 +42,18 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 #include <StaticThreadController.h> 
 #include <Encoder.h> // Encoder library >> https://github.com/PaulStoffregen/Encoder
 
+#include "AddonMux.h"
 
 /////////////////////////////////////////////
 // buttons
 const byte muxNButtons = 13; // *coloque aqui o numero de entradas digitais utilizadas no multiplexer
-const byte muxNAddonButtons = 16;
 const byte NButtons = 1; // *coloque aqui o numero de entradas digitais utilizadas
+#ifndef ADDONMUX
+const byte totalButtons = muxNButtons + NButtons;
+#else
 const byte totalButtons = muxNButtons + muxNAddonButtons + NButtons;
+#endif
 const byte muxButtonPin[muxNButtons] = {0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15}; // *neste array coloque na ordem desejada os pinos das portas digitais utilizadas
-const byte muxAddonButtonPin[muxNAddonButtons] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 const byte buttonPin[NButtons] = {9}; // *neste array coloque na ordem desejada os pinos das portas digitais utilizadas
 int buttonCState[totalButtons] = {0}; // estado atual da porta digital
 int buttonPState[totalButtons] = {0}; // estado previo da porta digital
@@ -63,11 +66,14 @@ unsigned long debounceDelay = 5;    // the debounce time; increase if the output
 /////////////////////////////////////////////
 // potentiometers
 const byte muxNPots = 14; // *coloque aqui o numero de entradas analogicas utilizadas
-const byte muxNAddonPots = 0;
+
 const byte NPots = 0; // put the number of pots on analog pins here
+#ifndef ADDONMUX
+const byte totalPots = muxNPots + NPots;
+#else
 const byte totalPots = muxNPots + muxNAddonPots + NPots;
+#endif
 const byte muxPotPin[muxNPots] = {0, 1, 2, 3, 4, 5, 6, 15, 14, 13, 12, 11, 10, 8}; // *neste array coloque na ordem desejada os pinos das portas analogicas, ou mux channel, utilizadas
-const byte muxAddonPotPin[muxNAddonPots] = {};
 const byte potPin[NPots] = {};
 int potCState[totalPots] = {0}; // estado atual da porta analogica
 int potPState[totalPots] = {0}; // estado previo da porta analogica
@@ -121,7 +127,6 @@ byte ledOnOffPin = 10; //On Off pin
 // Multiplexer
 Multiplexer4067Fast<4, 5, 6, 7> mplexPots(A0);
 Multiplexer4067Fast<4, 5, 6, 7> mplexButtons(A1);
-Multiplexer4067 mplexAddon<4, 5, 6, 7> = Multiplexer4067(A5);
 
 /////////////////////////////////////////////
 // threads - programa cada atividade do Arduino para acontecer em um determinado tempo
@@ -146,7 +151,9 @@ void setup() {
   // Multiplexers
   mplexPots.begin(); // inicializa o multiplexer
   mplexButtons.begin(); // inicializa o multiplexer
+#ifdef ADDONMUX
   mplexAddon.begin();
+#endif
   pinMode(A1, INPUT_PULLUP); // Buttons need input pull up
   
   /////////////////////////////////////////////
@@ -194,31 +201,34 @@ void loop() {
 /////////////////////////////////////////////
 // read buttons
 void readButtons() {
-  for (int i = 0; i < muxNButtons; i++) { //reads buttons on mux
+  int iButton = 0;
+  for (int i = 0; i < muxNButtons; i++, iButton++) { //reads buttons on mux
     int buttonReading = mplexButtons.readChannel(muxButtonPin[i]);
     if (buttonReading > 100) {
-      buttonCState[i] = HIGH;
+      buttonCState[iButton] = HIGH;
     }
     else {
-      buttonCState[i] = LOW;
+      buttonCState[iButton] = LOW;
     }
   }
 
+#ifdef ADDONMUX
   if (muxNAddonButtons > 0) { //reads buttons on add-on mux
     pinMode(A5, INPUT_PULLUP);
-    for (int i = 0; i < muxNAddonButtons; i++) { //reads buttons on muxAddon
+    for (int i = 0; i < muxNAddonButtons; i++, iButton++) { //reads buttons on muxAddon
       int buttonReading = mplexAddon.readChannel(muxAddonButtonPin[i]);
       if (buttonReading > 100) {
-        buttonCState[i + muxNButtons] = HIGH;
+        buttonCState[iButton] = HIGH;
       }
       else {
-        buttonCState[i + muxNButtons] = LOW;
+        buttonCState[iButton] = LOW;
       }
     }
   }
+#endif
 
-  for (int i = 0; i < NButtons; i++) { //read buttons on Arduino
-    buttonCState[i + muxNButtons + muxNAddonButtons] = digitalRead(buttonPin[i]); // stores in the rest of buttonCState
+  for (int i = 0; i < NButtons; i++, iButton++) { //read buttons on Arduino
+    buttonCState[iButton] = digitalRead(buttonPin[i]); // stores in the rest of buttonCState
   }
 
   for (int i = 0; i < totalButtons; i++) {
@@ -242,19 +252,22 @@ void readButtons() {
 ////////////////////////////////////////////
 //read potentiometers
 void readPots() {
-  for (int i = 0; i < muxNPots; i++) { // le todas entradas analogicas utilizadas, menos a dedicada a troca do canal midi
-    potCState[i] = mplexPots.readChannel(muxPotPin[i]);
+  int iPot = 0;
+  for (int i = 0; i < muxNPots; i++, iPot++) { // le todas entradas analogicas utilizadas, menos a dedicada a troca do canal midi
+    potCState[iPot] = mplexPots.readChannel(muxPotPin[i]);
   }
-  
+
+#ifdef ADDONMUX
   if (muxNAddonPots > 0) {
     pinMode(A5, INPUT);
-    for (int i = 0; i < muxNAddonPots; i++) { // reads pots on add-on mux
-      potCState[i + muxNPots] = mplexAddon.readChannel(muxAddonPotPin[i]);
+    for (int i = 0; i < muxNAddonPots; i++, iPot++) { // reads pots on add-on mux
+      potCState[iPot] = mplexAddon.readChannel(muxAddonPotPin[i]);
     }
   }
-  
-  for (int i = 0; i < NPots; i++) { // read pots attached to analog pins
-    potCState[i + muxNPots + muxNAddonPots] = analogRead(potPin[i]);
+#endif
+
+  for (int i = 0; i < NPots; i++, iPot++) { // read pots attached to analog pins
+    potCState[iPot] = analogRead(potPin[i]);
   }
   
   for (int i = 0; i < totalPots; i++) {
