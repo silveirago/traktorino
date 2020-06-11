@@ -9,9 +9,9 @@
  */
 
 // uncomment to enable additional buttons and potentiometers on Arduino digital / analog pins
-//#define ADDITINALBUTTONSANDPOTS
+//#define ADDITIONALBUTTONSANDPOTS
 
-#ifdef ADDITINALBUTTONSANDPOTS
+#ifdef ADDITIONALBUTTONSANDPOTS
 
 // these fields should be customized to reflect what you've attached to the Arduino pins
 const byte NButtons = 0; // *coloque aqui o numero de entradas digitais utilizadas

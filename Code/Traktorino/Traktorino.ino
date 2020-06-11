@@ -49,7 +49,7 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 /////////////////////////////////////////////
 // buttons
 const byte muxNButtons = 13; // *coloque aqui o numero de entradas digitais utilizadas no multiplexer
-#ifndef ADDITINALBUTTONSANDPOTS
+#ifndef ADDITIONALBUTTONSANDPOTS
 const byte NButtons = 0;
 #endif
 #ifndef ADDONMUX
@@ -68,7 +68,7 @@ unsigned long debounceDelay = 5;    // the debounce time; increase if the output
 /////////////////////////////////////////////
 // potentiometers
 const byte muxNPots = 14; // *coloque aqui o numero de entradas analogicas utilizadas
-#ifndef ADDITINALBUTTONSANDPOTS
+#ifndef ADDITIONALBUTTONSANDPOTS
 const byte NPots = 0;
 #endif
 #ifndef ADDONMUX
@@ -161,7 +161,7 @@ void setup() {
   
   /////////////////////////////////////////////
   // buttons on Arduino Digital pins
-#ifdef ADDITINALBUTTONSANDPOTS
+#ifdef ADDITIONALBUTTONSANDPOTS
   for (int i = 0; i < NButtons; i++) { // buttons on Digital pin
     pinMode(buttonPin[i], INPUT_PULLUP);
   }
@@ -235,7 +235,7 @@ void readButtons() {
   buttonCState[iButton] = digitalRead(9); // read encoder click
   iButton++;
 
-#ifdef ADDITINALBUTTONSANDPOTS
+#ifdef ADDITIONALBUTTONSANDPOTS
   for (int i = 0; i < NButtons; i++, iButton++) { //read buttons on Arduino
     buttonCState[iButton] = digitalRead(buttonPin[i]); // stores in the rest of buttonCState
   }
@@ -276,7 +276,7 @@ void readPots() {
   }
 #endif
 
-#ifdef ADDITINALBUTTONSANDPOTS
+#ifdef ADDITIONALBUTTONSANDPOTS
   for (int i = 0; i < NPots; i++, iPot++) { // read pots attached to analog pins
     potCState[iPot] = analogRead(potPin[i]);
   }
