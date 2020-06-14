@@ -11,14 +11,17 @@
 
 #ifdef ADDONMUX
 #include <Multiplexer4067Fast.h>
-Multiplexer4067Fast<4, 5, 6, 7> mplexAddon(A5);
 
-// these fields should be customized to reflect what you've attached to your add-on multiplexer
+// these fields should be customized to reflect which pin you're reading from and what you've attached to your add-on multiplexer
+const byte addonMuxPin = A5;
+
 const byte muxNAddonButtons = 16;
 const byte muxAddonButtonPin[muxNAddonButtons] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
 const byte muxNAddonPots = 0;
 const byte muxAddonPotPin[muxNAddonPots] = {};
+
+Multiplexer4067Fast<4, 5, 6, 7> mplexAddon(addonMuxPin);
 #endif
 
 #endif
