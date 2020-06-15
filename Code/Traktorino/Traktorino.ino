@@ -9,7 +9,8 @@
    http://www.musiconerd.com/traktorino >> learn more about the Traktorino
    http://github.com/silveirago/traktorino >> Download the traktorino files
    gustavosilveira@musiconerd.com >> Send me a message if you have any doubt
- 
+
+   ongoing code improvements by rasprague https://github.com/rasprague/traktorino
 */
 
 /////////////////////////////////////////////
@@ -36,19 +37,26 @@ const bool ShiftPWM_balanceLoad = false;
 // If using with ATmega328 - Uno, Mega, Nano...
 #include <MIDI.h> // MIDI library (by Forty Seven Effects) >> https://github.com/FortySevenEffects/arduino_midi_library/releases/tag/4.3.1
 MIDI_CREATE_DEFAULT_INSTANCE();
-#include <Multiplexer4067.h> // Multiplexer CD4067 library >> https://github.com/sumotoy/Multiplexer4067
+#include <digitalWriteFast.h> // digitalWriteFast library >> https://github.com/NicksonYap/digitalWriteFast
+#include <Multiplexer4067Fast.h> // Multiplexer CD4067 library >> https://github.com/rasprague/Multiplexer4067Fast
 #include <Thread.h> // Threads library (by Ivan seidel) >> https://github.com/ivanseidel/ArduinoThread
-#include <ThreadController.h> 
+#include <StaticThreadController.h> 
 #include <Encoder.h> // Encoder library >> https://github.com/PaulStoffregen/Encoder
 
+#include "AdditionalButtonsAndPots.h"
+#include "AddonMux.h"
 
 /////////////////////////////////////////////
 // buttons
 const byte muxNButtons = 13; // *coloque aqui o numero de entradas digitais utilizadas no multiplexer
-const byte NButtons = 1; // *coloque aqui o numero de entradas digitais utilizadas
-const byte totalButtons = muxNButtons + NButtons;
+#ifndef ADDITIONALBUTTONSANDPOTS
+const byte NButtons = 0;
+#endif
+#ifndef ADDONMUX
+const byte muxNAddonButtons = 0;
+#endif
+const byte totalButtons = muxNButtons + muxNAddonButtons + NButtons + 1;
 const byte muxButtonPin[muxNButtons] = {0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15}; // *neste array coloque na ordem desejada os pinos das portas digitais utilizadas
-const byte buttonPin[NButtons] = {9}; // *neste array coloque na ordem desejada os pinos das portas digitais utilizadas
 int buttonCState[totalButtons] = {0}; // estado atual da porta digital
 int buttonPState[totalButtons] = {0}; // estado previo da porta digital
 
@@ -59,20 +67,27 @@ unsigned long debounceDelay = 5;    // the debounce time; increase if the output
 
 /////////////////////////////////////////////
 // potentiometers
-const byte NPots = 14; // *coloque aqui o numero de entradas analogicas utilizadas
-const byte muxPotPin[NPots] = {0, 1, 2, 3, 4, 5, 6, 15, 14, 13, 12, 11, 10, 8}; // *neste array coloque na ordem desejada os pinos das portas analogicas, ou mux channel, utilizadas
-int potCState[NPots] = {0}; // estado atual da porta analogica
-int potPState[NPots] = {0}; // estado previo da porta analogica
+const byte muxNPots = 14; // *coloque aqui o numero de entradas analogicas utilizadas
+#ifndef ADDITIONALBUTTONSANDPOTS
+const byte NPots = 0;
+#endif
+#ifndef ADDONMUX
+const byte muxNAddonPots = 0;
+#endif
+const byte totalPots = muxNPots + muxNAddonPots + NPots;
+const byte muxPotPin[muxNPots] = {0, 1, 2, 3, 4, 5, 6, 15, 14, 13, 12, 11, 10, 8}; // *neste array coloque na ordem desejada os pinos das portas analogicas, ou mux channel, utilizadas
+int potCState[totalPots] = {0}; // estado atual da porta analogica
+int potPState[totalPots] = {0}; // estado previo da porta analogica
 int potVar = 0; // variacao entre o valor do estado previo e o atual da porta analogica
-int lastCcValue[NPots] = {0};
+int lastCcValue[totalPots] = {0};
 
 /////////////////////////////////////////////
 // pot reading
 int TIMEOUT = 50; //quantidade de tempo em que o potenciometro sera lido apos ultrapassar o varThreshold
 byte varThreshold = 8; //threshold para a variacao no sinal do potenciometro
 boolean potMoving = true; // se o potenciometro esta se movendo
-unsigned long pTime[NPots] = {0}; // tempo armazenado anteriormente
-unsigned long timer[NPots] = {0}; // armazena o tempo que passou desde que o timer foi zerado
+unsigned long pTime[totalPots] = {0}; // tempo armazenado anteriormente
+unsigned long timer[totalPots] = {0}; // armazena o tempo que passou desde que o timer foi zerado
 
 /////////////////////////////////////////////
 // encoder
@@ -111,24 +126,25 @@ byte ledOnOffPin = 10; //On Off pin
 
 /////////////////////////////////////////////
 // Multiplexer
-Multiplexer4067 mplexPots = Multiplexer4067(4, 5, 6, 7, A0);
-Multiplexer4067 mplexButtons = Multiplexer4067(4, 5, 6, 7, A1);
+Multiplexer4067Fast<4, 5, 6, 7> mplexPots(A0);
+Multiplexer4067Fast<4, 5, 6, 7> mplexButtons(A1);
+const int numReadings = 1;
 
 /////////////////////////////////////////////
 // threads - programa cada atividade do Arduino para acontecer em um determinado tempo
-ThreadController cpu; //thread master, onde as outras vao ser adicionadas
 Thread threadReadPots; // thread para controlar os pots
 Thread threadReadButtons; // thread para controlar os botoes
+StaticThreadController<2> cpu(&threadReadPots, &threadReadButtons); //thread master, onde as outras vao ser adicionadas
 
 /////////////////////////////////////////////
 void setup() {
-
   Serial.begin(31250); // 115200 for hairless - 31250 for MOCO lufa
-  
-  MIDI.turnThruOff();
   
   /////////////////////////////////////////////
   // Midi in
+  MIDI.turnThruOff();
+  MIDI.setInputChannel(midiCh);
+  
   MIDI.setHandleControlChange(handleControlChange);
   MIDI.setHandleNoteOn(handleNoteOn);
   MIDI.setHandleNoteOff(handleNoteOff);
@@ -137,18 +153,22 @@ void setup() {
   // Multiplexers
   mplexPots.begin(); // inicializa o multiplexer
   mplexButtons.begin(); // inicializa o multiplexer
+#ifdef ADDONMUX
+  mplexAddon.begin();
+#endif
   pinMode(A1, INPUT_PULLUP); // Buttons need input pull up
-
+  pinMode(9, INPUT_PULLUP); // encoder click needs input pullup
+  
   /////////////////////////////////////////////
   // buttons on Arduino Digital pins
+#ifdef ADDITIONALBUTTONSANDPOTS
   for (int i = 0; i < NButtons; i++) { // buttons on Digital pin
     pinMode(buttonPin[i], INPUT_PULLUP);
   }
-  
+#endif
+
   /////////////////////////////////////////////
   // Leds
-  //  leds.setBitCount(ledNum); // Mux Leds
-  //  leds.setPins(clockPin, dataPin, latchPin);
   pinMode(ledOnOffPin, OUTPUT);
 
   // Sets the number of 8-bit registers that are used.
@@ -166,93 +186,103 @@ void setup() {
   // pots
   threadReadPots.setInterval(10);
   threadReadPots.onRun(readPots);
-  cpu.add(&threadReadPots);
   // buttons
   threadReadButtons.setInterval(20);
   threadReadButtons.onRun(readButtons);
-  cpu.add(&threadReadButtons);
 
   /////////////////////////////////////////////
   //leds
   analogWrite(ledOnOffPin, 255); // on/off led
-
-//  for (int i = 0; i < ledNum; i++) { // writeBit works just like digitalWrite
-//    ShiftPWM.SetOne(i, LOW);
-//  }
-
 }
 
 void loop() {
-  
-  
   cpu.run();
-  MIDI.read();
+  while(MIDI.read()) {
+    // read entire miid in buffer
+  }
   readEncoder();
-//
-
 }
 
 /////////////////////////////////////////////
 // read buttons
-
 void readButtons() {
-
-  for (int i = 0; i < muxNButtons; i++) { //reads buttons on mux
-    int buttonReading = mplexButtons.readChannel(muxButtonPin[i]);
-    //buttonCState[i] = map(mplex.readChannel(muxButtonPin[i]), 22, 1023, 0, 2); // stores on buttonCState
+  int iButton = 0;
+  for (int i = 0; i < muxNButtons; i++, iButton++) { //reads buttons on mux
+    int buttonReading = mplexButtons.readChannel(muxButtonPin[i], numReadings);
     if (buttonReading > 100) {
-      buttonCState[i] = HIGH;
+      buttonCState[iButton] = HIGH;
     }
     else {
-      buttonCState[i] = LOW;
+      buttonCState[iButton] = LOW;
     }
-    //Serial.print(buttonCState[i]); Serial.print("   ");
   }
-  //Serial.println();
 
-  for (int i = 0; i < NButtons; i++) { //read buttons on Arduino
-    buttonCState[i + muxNButtons] = digitalRead(buttonPin[i]); // stores in the rest of buttonCState
+#ifdef ADDONMUX
+  if (muxNAddonButtons > 0) { //reads buttons on add-on mux
+    pinMode(A5, INPUT_PULLUP);
+    for (int i = 0; i < muxNAddonButtons; i++, iButton++) { //reads buttons on muxAddon
+      int buttonReading = mplexAddon.readChannel(muxAddonButtonPin[i], numReadings);
+      if (buttonReading > 100) {
+        buttonCState[iButton] = HIGH;
+      }
+      else {
+        buttonCState[iButton] = LOW;
+      }
+    }
   }
+#endif
+
+  buttonCState[iButton] = digitalRead(9); // read encoder click
+  iButton++;
+
+#ifdef ADDITIONALBUTTONSANDPOTS
+  for (int i = 0; i < NButtons; i++, iButton++) { //read buttons on Arduino
+    buttonCState[iButton] = digitalRead(buttonPin[i]); // stores in the rest of buttonCState
+  }
+#endif
 
   for (int i = 0; i < totalButtons; i++) {
-
     if ((millis() - lastDebounceTime) > debounceDelay) {
-
       if (buttonCState[i] != buttonPState[i]) {
         lastDebounceTime = millis();
 
         if (buttonCState[i] == LOW) {
-          //          noteOn(potMidiCh(), note + i, 127);  // Channel 0, middle C, normal velocity
-          //          MidiUSB.flush();
           MIDI.sendNoteOn(note + i, 127, midiCh); // envia NoteOn(nota, velocity, canal midi)
-          //Serial.print("Note: "); Serial.print(note + i); Serial.println(" On");
           buttonPState[i] = buttonCState[i];
         }
         else {
-          //          noteOn(potMidiCh(), note + i, 0);  // Channel 0, middle C, normal velocity
-          //          MidiUSB.flush();
           MIDI.sendNoteOn(note + i, 0, midiCh);
-          //Serial.print("Note: "); Serial.print(note + i); Serial.println(" Off");
           buttonPState[i] = buttonCState[i];
         }
       }
     }
-
   }
-
 }
 
 ////////////////////////////////////////////
 //read potentiometers
-
 void readPots() {
-
-  for (int i = 0; i < NPots; i++) { // le todas entradas analogicas utilizadas, menos a dedicada a troca do canal midi
-    potCState[i] = mplexPots.readChannel(muxPotPin[i]);
+  int iPot = 0;
+  for (int i = 0; i < muxNPots; i++, iPot++) { // le todas entradas analogicas utilizadas, menos a dedicada a troca do canal midi
+    potCState[iPot] = mplexPots.readChannel(muxPotPin[i], numReadings);
   }
 
-  for (int i = 0; i < NPots; i++) {
+#ifdef ADDONMUX
+  if (muxNAddonPots > 0) {
+    pinMode(A5, INPUT);
+    for (int i = 0; i < muxNAddonPots; i++, iPot++) { // reads pots on add-on mux
+      potCState[iPot] = mplexAddon.readChannel(muxAddonPotPin[i], numReadings);
+    }
+  }
+#endif
 
+#ifdef ADDITIONALBUTTONSANDPOTS
+  for (int i = 0; i < NPots; i++, iPot++) { // read pots attached to analog pins
+    potCState[iPot] = analogRead(potPin[i]);
+  }
+#endif
+
+  for (int i = 0; i < totalPots; i++) {
     potVar = abs(potCState[i] - potPState[i]); // calcula a variacao da porta analogica
 
     if (potVar >= varThreshold) {  //sets a threshold for the variance in the pot state, if it varies more than x it sends the cc message
@@ -269,28 +299,22 @@ void readPots() {
     if (potMoving == true) { // se o potenciometro ainda esta se movendo, mande o control change
       int ccValue = map(potCState[i], 0, 1023, 0, 127);
       if (lastCcValue[i] != ccValue) {
-        //        controlChange(11, cc + i, ccValue); // manda control change (channel, CC, value)
-        //        MidiUSB.flush();
-        MIDI.sendControlChange(cc + i, map(potCState[i], 0, 1023, 0, 127), 11); // envia Control Change (numero do CC, valor do CC, canal midi)
-        //Serial.print("CC: "); Serial.print(cc + i); Serial.print(" value:"); Serial.println(map(potCState[i], 0, 1023, 0, 127));
+        MIDI.sendControlChange(cc + i, map(potCState[i], 0, 1023, 0, 127), midiCh); // envia Control Change (numero do CC, valor do CC, canal midi)
         potPState[i] = potCState[i]; // armazena a leitura atual do potenciometro para comparar com a proxima
         lastCcValue[i] = ccValue;
       }
     }
   }
-
 }
 
 ////////////////////////////////////////////
 //// read encoder
 void readEncoder () {
-
   int newPosition = myEnc.read();
   int encoderVal = map(newPosition, -1024, 1024, -256, 256);
   int encoderValue;
 
   if (encoderVal != oldPosition) {
-
     if ((encoderVal - oldPosition) > 0) {
       encoderValue = 127;
     }
@@ -298,27 +322,20 @@ void readEncoder () {
       encoderValue = 1;
     }
 
-    MIDI.sendControlChange(14, encoderValue, 1);
+    MIDI.sendControlChange(20, encoderValue, midiCh);
 
     oldPosition = encoderVal;
   }
-
 }
 
 ////////////////////////////////////////////
 // led feedback
 void handleControlChange(byte channel, byte number, byte value) {
-
-  //handleControlChange
-
-  //int value_ = round(map(value, 0, 127, 0, 7));
   int value_ = value;
 
   if (value_ != ccLastValue) {
-
     // Left VU
     if (number == 12) {
-
       switch (value_) {
         case 0:
           for (int i = 0; i < 7; i++) {
@@ -387,7 +404,6 @@ void handleControlChange(byte channel, byte number, byte value) {
 
     // Right VU
     if (number == 13) {
-
       switch (value_) {
         case 0:
           for (int i = 0; i < 7; i++) {
@@ -455,12 +471,9 @@ void handleControlChange(byte channel, byte number, byte value) {
     }
     ccLastValue = value;
   }
-
 }
 
-void handleNoteOn(byte channel, byte number, byte value)
-{
-
+void handleNoteOn(byte channel, byte number, byte value) {
   switch (number) {
     // Left buttons
     case 40: //sync
@@ -496,11 +509,9 @@ void handleNoteOn(byte channel, byte number, byte value)
       ShiftPWM.SetOne(buttonsLedR[4], blue);
       break;
   }
-
 }
 
 void handleNoteOff(byte channel, byte number, byte value) {
-
   switch (number) {
     // Left buttons
     case 40: //sync
@@ -536,7 +547,6 @@ void handleNoteOff(byte channel, byte number, byte value) {
       ShiftPWM.SetOne(buttonsLedR[4], LOW);
       break;
   }
-
 }
 
 /*
