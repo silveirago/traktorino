@@ -65,9 +65,9 @@ Watch the video series on how to build your Traktorino:
 - Verify that all components are correctly soldered and oriented.
 
 ## Support and Contributions
-- Subscribe to the [YouTube channel](https://www.youtube.com/channel/your-channel) for updates and tutorials.
-- Purchase a Traktorino kit from our [store](https://www.yourstore.com).
-- Check out the [DIY MIDI Controller Workshop](https://www.yourworkshop.com) for more in-depth learning.
+- Subscribe to the [YouTube channel](https://www.youtube.com/channel/UCyqCwyBJ98fR-CPoyXUxY5w) for updates and tutorials.
+- Purchase a Traktorino kit from our store. (Out of stock)
+- Check out the [DIY MIDI Controller Workshop](https://go.musiconerd.com/diy-midi-controller-workshop) for more in-depth learning.
 
 ## Code Explanation
 
