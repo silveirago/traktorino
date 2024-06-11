@@ -14,10 +14,10 @@ Welcome to the Traktorino project! The Traktorino is a low-cost, DIY MIDI contro
 
 ## Introduction
 Watch the video series on how to build your Traktorino:
-1. [Video 1: Introduction and Assembly](https://www.youtube.com/watch?v=example)
-2. [Video 2: Programming the Arduino](https://www.youtube.com/watch?v=example)
-3. [Video 3: Setting Up MIDI](https://www.youtube.com/watch?v=example)
-4. [Video 4: Enclosure Assembly](https://www.youtube.com/watch?v=example)
+1. [Video 1: Introduction and Assembly](https://youtu.be/pawsvbFrXVM)
+2. [Video 2: Programming the Arduino](https://youtu.be/B8oFYNJLdgw)
+3. [Video 3: Setting Up MIDI](https://youtu.be/18OKo9sQ_s0)
+4. [Video 4: Enclosure Assembly](https://youtu.be/xLqzVqaUnkY)
 
 ## Parts List
 - 1 Traktorino PCB
@@ -69,7 +69,76 @@ Watch the video series on how to build your Traktorino:
 - Purchase a Traktorino kit from our [store](https://www.yourstore.com).
 - Check out the [DIY MIDI Controller Workshop](https://www.yourworkshop.com) for more in-depth learning.
 
-Thank you for your interest in the Traktorino project! Feel free to open issues or contribute to the repository.
+## Code Explanation
+
+### PWM Bit Shifter
+The code uses a PWM bit shifter for controlling LEDs:
+- `ShiftPWM_latchPin`: Set to pin 8.
+- To avoid using the SPI port and change the pin numbers, uncomment `#define SHIFTPWM_NOSPI` and set `ShiftPWM_dataPin` and `ShiftPWM_clockPin`.
+- `ShiftPWM_invertOutputs`: Set to `false`. Change to `true` if your LEDs turn on when the pin is low.
+- `ShiftPWM_balanceLoad`: Set to `false`. Set to `true` to distribute current peaks.
+
+### Libraries
+The following libraries are included:
+- **ShiftPWM** for PWM control.
+- **MIDI** by Forty Seven Effects for MIDI communication.
+- **Multiplexer4067** for handling the CD4067 multiplexer.
+- **Thread** and **ThreadController** by Ivan Seidel for managing multiple tasks.
+- **Encoder** by Paul Stoffregen for handling rotary encoders.
+
+### Buttons
+- `muxNButtons`: Number of digital inputs used in the multiplexer.
+- `NButtons`: Number of direct digital inputs used.
+- `muxButtonPin` and `buttonPin`: Arrays to store the pins used for buttons.
+
+### Debounce
+- `lastDebounceTime` and `debounceDelay`: Used to handle debounce for button presses.
+
+### Potentiometers
+- `NPots`: Number of analog inputs used.
+- `muxPotPin`: Array to store the pins used for potentiometers.
+
+### Potentiometer Reading
+- `TIMEOUT`: Time the potentiometer will be read after exceeding `varThreshold`.
+- `varThreshold`: Threshold for potentiometer signal variation.
+
+### Encoder
+- `myEnc`: Instance of the `Encoder` library using pins 3 and 2.
+- `oldPosition`: Previous position of the encoder.
+
+### MIDI Configuration
+- `midiCh`, `note`, and `cc`: MIDI channel, note, and CC configurations.
+
+### LEDs
+- Configuration for controlling 24 LEDs with PWM.
+- VU meter and button LED pins are defined.
+
+### Multiplexer
+- Instances of `Multiplexer4067` for pots and buttons.
+
+### Threads
+- `ThreadController` for managing tasks.
+- Separate threads for reading potentiometers and buttons.
+
+### Setup and Loop
+In `setup()`, the serial communication is initialized, MIDI thru is turned off, multiplexers and LEDs are initialized, and threads are configured.
+
+In `loop()`, the main tasks such as reading MIDI, encoder, and running threads are handled.
+
+### Functions
+- `readButtons()`: Reads button states and sends MIDI note messages.
+- `readPots()`: Reads potentiometer states and sends MIDI control change messages.
+- `readEncoder()`: Reads encoder values and sends MIDI control change messages.
+- `handleControlChange()`, `handleNoteOn()`, and `handleNoteOff()`: Handle LED feedback for MIDI control changes and note messages.
+
+## Usage
+- Connect your Arduino and load the provided code.
+- Ensure all components (buttons, potentiometers, LEDs) are connected to the specified pins.
+- Install the required libraries mentioned above.
+- Upload the code to your Arduino and start using your Traktorino MIDI controller with your favorite DJ software.
+
+Feel free to modify the code and configurations to fit your specific needs. Happy DJing!
+
 
 ---
 
