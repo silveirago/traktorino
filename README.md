@@ -20,31 +20,31 @@ Watch the video series on how to build your Traktorino:
 4. [Video 4: Enclosure Assembly](https://youtu.be/xLqzVqaUnkY)
 
 ## Parts List
-1x Traktorino PCB
-1x Arduino Uno ATmega16U2
-11x b10k vertical rotary pots
-3x b10k slide pots - 45mm - 30mm travel (C3031N-1A2-B10K-GP)
-1x Rotary Encoder
-2x cd4067 be multiplexers
-3x 74hc595 bit shifters
-13x tactile buttons 6x6x9
-24x 220ohm resistors 
-1x 1k resistor
-11x 3mm blue leds 
-10x 3mm green leds
-2x 3mm yellow leds
-2x 3mm red leds
+- 1x Traktorino PCB
+- 1x Arduino Uno ATmega16U2
+- 11x b10k vertical rotary pots
+- 3x b10k slide pots - 45mm - 30mm travel (C3031N-1A2-B10K-GP)
+- 1x Rotary Encoder
+- 2x cd4067 be multiplexers
+- 3x 74hc595 bit shifters
+- 13x tactile buttons 6x6x9
+- 24x 220ohm resistors 
+- 1x 1k resistor
+- 11x 3mm blue leds 
+- 10x 3mm green leds
+- 2x 3mm yellow leds
+- 2x 3mm red leds
 
 # Parts suggestion
 
-**Pot**
+- **Pot**
 https://lcsc.com/product-detail/Potentiometers-Variable-Resistors_ALPS-Electric-RK09D1130C2P_C361173.html 25
 
-**Encoder**
+- **Encoder**
 https://www.mouser.com/ProductDetail/Bourns/PEC12R-4025F-N0024?qs=Zq5ylnUbLm4HSBD7%2FFgU%2FA%3D%3D 25mm
 https://www.mouser.com/ProductDetail/Bourns/PEC11H-4120F-S0020?qs=7MVldsJ5Uaxh8cksqYCfvg%3D%3D 20mm
 
-**Slide Pot**
+- **Slide Pot**
 https://www.sparkfun.com/products/11621
 
 ## Assembly Instructions
