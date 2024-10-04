@@ -20,18 +20,20 @@ Watch the video series on how to build your Traktorino:
 4. [Video 4: Enclosure Assembly](https://youtu.be/xLqzVqaUnkY)
 
 ## Parts List
-- 1 Traktorino PCB
-- 11 B10k rotary potentiometers
-- 3 B10k slide potentiometers
-- 2 cd4067 multiplexers
-- 3 74HC595 bit shifters
-- 13 tactile buttons
-- 24 220 ohms resistors
-- 1 1k resistor
-- 11 blue LEDs
-- 10 green LEDs
-- 2 yellow LEDs
-- 2 red LEDs
+1x Traktorino PCB
+1x Arduino Uno ATmega16U2
+11x b10k vertical rotary pots
+3x b10k slide pots - 45mm - 30mm travel (C3031N-1A2-B10K-GP)
+1x Rotary Encoder
+2x cd4067 be multiplexers
+3x 74hc595 bit shifters
+13x tactile buttons 6x6x9
+24x 220ohm resistors 
+1x 1k resistor
+11x 3mm blue leds 
+10x 3mm green leds
+2x 3mm yellow leds
+2x 3mm red leds
 
 ## Assembly Instructions
 1. **Resistors**: Insert and solder the 220 ohm resistors. Place a 1k resistor in the specified position.
