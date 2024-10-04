@@ -37,11 +37,13 @@ Watch the video series on how to build your Traktorino:
 
 ### Parts suggestion
 
-- **Pot**
-https://lcsc.com/product-detail/Potentiometers-Variable-Resistors_ALPS-Electric-RK09D1130C2P_C361173.html 25
+- **Pot 25,,**
+https://lcsc.com/product-detail/Potentiometers-Variable-Resistors_ALPS-Electric-RK09D1130C2P_C361173.html
 
-- **Encoder**
-https://www.mouser.com/ProductDetail/Bourns/PEC12R-4025F-N0024?qs=Zq5ylnUbLm4HSBD7%2FFgU%2FA%3D%3D 25mm
+- **Encoder 25mm**
+https://www.mouser.com/ProductDetail/Bourns/PEC12R-4025F-N0024?qs=Zq5ylnUbLm4HSBD7%2FFgU%2FA%3D%3D
+
+- **Encoder 20mm**
 https://www.mouser.com/ProductDetail/Bourns/PEC11H-4120F-S0020?qs=7MVldsJ5Uaxh8cksqYCfvg%3D%3D 20mm
 
 - **Slide Pot**
