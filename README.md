@@ -37,7 +37,7 @@ Watch the video series on how to build your Traktorino:
 
 ### Parts suggestion
 
-- **Pot 25,,**
+- **Pot 25mm**
 https://lcsc.com/product-detail/Potentiometers-Variable-Resistors_ALPS-Electric-RK09D1130C2P_C361173.html
 
 - **Encoder 25mm**
