@@ -35,7 +35,7 @@ Watch the video series on how to build your Traktorino:
 - 2x 3mm yellow leds
 - 2x 3mm red leds
 
-# Parts suggestion
+### Parts suggestion
 
 - **Pot**
 https://lcsc.com/product-detail/Potentiometers-Variable-Resistors_ALPS-Electric-RK09D1130C2P_C361173.html 25
