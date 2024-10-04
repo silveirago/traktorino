@@ -35,6 +35,18 @@ Watch the video series on how to build your Traktorino:
 2x 3mm yellow leds
 2x 3mm red leds
 
+# Parts suggestion
+
+**Pot**
+https://lcsc.com/product-detail/Potentiometers-Variable-Resistors_ALPS-Electric-RK09D1130C2P_C361173.html 25
+
+**Encoder**
+https://www.mouser.com/ProductDetail/Bourns/PEC12R-4025F-N0024?qs=Zq5ylnUbLm4HSBD7%2FFgU%2FA%3D%3D 25mm
+https://www.mouser.com/ProductDetail/Bourns/PEC11H-4120F-S0020?qs=7MVldsJ5Uaxh8cksqYCfvg%3D%3D 20mm
+
+**Slide Pot**
+https://www.sparkfun.com/products/11621
+
 ## Assembly Instructions
 1. **Resistors**: Insert and solder the 220 ohm resistors. Place a 1k resistor in the specified position.
 2. **Arduino Pin Headers**: Solder the pin headers to the Arduino and snap it onto the PCB.
